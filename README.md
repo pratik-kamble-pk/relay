@@ -234,3 +234,61 @@ Run a RAG search against a chatbot's knowledge base.
 
 ---
 
+## Testing
+
+### Python Tests
+```bash
+cd python-rag-service
+pip install -r requirements.txt
+pytest tests/ -v --tb=short
+```
+
+### Next.js Tests
+```bash
+cd nextjs-app
+npm test
+```
+
+---
+
+## Multi-Tenant Isolation
+
+Every document vector stored in Pinecone includes `chatbot_id` in its metadata:
+```json
+{
+  "chatbot_id": "uuid-of-chatbot",
+  "document_name": "file.pdf",
+  "chunk_id": 0,
+  "text": "chunk text..."
+}
+```
+
+Every Pinecone search applies a server-side metadata filter:
+```python
+filter={"chatbot_id": {"$eq": chatbot_id}}
+```
+
+This guarantees that **Chatbot A can never retrieve documents from Chatbot B or C**, even if they share the same Pinecone index.
+
+---
+
+## Security
+
+- Passwords hashed with bcrypt (12 rounds) — never stored plaintext
+- All chatbot routes verify `chatbot.userId === authenticated user id` server-side
+- Python service rejects all requests without a valid `x-api-key` header
+- No secrets, stack traces, or internal details exposed in error responses
+- NextAuth JWT sessions — no server-side session storage required
+
+---
+
+## Troubleshooting
+
+| Problem | Solution |
+|---|---|
+| `MONGODB_URI is not defined` | Add `MONGODB_URI` to `.env.local` |
+| `AUTH_SECRET is not defined` | Run `npx auth secret` and add the output to `.env.local` |
+| Pinecone dimension mismatch | Ensure Pinecone index dimension = 1536 for `text-embedding-3-small` |
+| Python service 401 | Check `PYTHON_SERVICE_API_KEY` matches `PYTHON_RAG_SERVICE_API_KEY` |
+| `No module named pydantic_settings` | Run `pip install pydantic-settings` |
+| Next.js build errors | Run `npm install` then `npm run build` |
