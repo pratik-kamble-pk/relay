@@ -35,3 +35,13 @@ A production-ready multi-tenant AI chatbot platform that allows users to create 
         └─────────┘          └──────────┘
 ```
 
+## Repository Structure
+
+```
+chatbot-platform/
+├── nextjs-app/          # Next.js 15 + Auth.js v5 + MongoDB
+├── python-rag-service/  # FastAPI + Pinecone + OpenAI RAG
+├── docker-compose.yml
+└── README.md
+```
+
