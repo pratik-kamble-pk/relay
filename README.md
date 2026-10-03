@@ -80,3 +80,100 @@ chatbot-platform/
 
 ---
 
+## Setup Instructions
+
+### 1. Clone / Open Repository
+
+```bash
+cd "rp project"
+```
+
+### 2. Set Up Pinecone Index
+
+1. Log in to [app.pinecone.io](https://app.pinecone.io)
+2. Create a new index:
+   - **Name**: `chatbot-platform` (or any name — set in `PINECONE_INDEX_NAME`)
+   - **Dimensions**: `1536` (for `text-embedding-3-small`)
+   - **Metric**: `cosine`
+   - **Spec**: Serverless (recommended) or Pod
+
+### 3. Environment Variables
+
+#### Next.js (`nextjs-app/.env.local`)
+```env
+MONGODB_URI=mongodb://localhost:27017/chatbot-platform
+AUTH_SECRET=<generate with: npx auth secret>
+NEXTAUTH_URL=http://localhost:3000
+PYTHON_RAG_SERVICE_URL=http://localhost:8000
+PYTHON_RAG_SERVICE_API_KEY=your-strong-random-api-key
+```
+
+#### Python (`python-rag-service/.env`)
+```env
+OPENAI_API_KEY=sk-your-openai-api-key
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+OPENAI_LLM_MODEL=gpt-4o-mini
+
+PINECONE_API_KEY=your-pinecone-api-key
+PINECONE_INDEX_NAME=chatbot-platform
+PINECONE_NAMESPACE=default
+
+PYTHON_SERVICE_API_KEY=your-strong-random-api-key  # MUST match Next.js PYTHON_RAG_SERVICE_API_KEY
+
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+TOP_K=5
+SIMILARITY_THRESHOLD=0.7
+```
+
+> **Important**: `PYTHON_SERVICE_API_KEY` in the Python service must exactly match `PYTHON_RAG_SERVICE_API_KEY` in the Next.js service.
+
+---
+
+## Running Locally
+
+### Option A: Docker Compose (Recommended)
+
+```bash
+# Copy and fill in env files first
+cp nextjs-app/.env.example nextjs-app/.env
+cp python-rag-service/.env.example python-rag-service/.env
+# Edit both .env files with your real credentials
+
+docker compose up --build
+```
+
+Services:
+- Next.js: http://localhost:3000
+- Python RAG: http://localhost:8000
+- MongoDB: localhost:27017
+
+### Option B: Manual Local Dev
+
+**Start MongoDB:**
+```bash
+# Using Docker:
+docker run -d -p 27017:27017 --name mongo mongo:7.0
+# Or use MongoDB Atlas connection string
+```
+
+**Start Python Service:**
+```bash
+cd python-rag-service
+python -m venv venv
+venv\Scripts\activate        # Windows
+pip install -r requirements.txt
+cp .env.example .env         # Fill in your credentials
+uvicorn app.main:app --reload --port 8000
+```
+
+**Start Next.js App:**
+```bash
+cd nextjs-app
+npm install
+cp .env.example .env.local   # Fill in your credentials
+npm run dev
+```
+
+---
+
