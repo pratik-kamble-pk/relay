@@ -177,3 +177,60 @@ npm run dev
 
 ---
 
+## API Documentation
+
+### Python Service APIs (internal — called by Next.js only)
+
+All requests require: `x-api-key: <PYTHON_SERVICE_API_KEY>`
+
+#### POST /documents
+Ingest a document into a chatbot's knowledge base.
+
+**Request** (multipart/form-data):
+```
+file: <binary file — PDF, DOCX, or TXT>
+chatbot_id: 550e8400-e29b-41d4-a716-446655440000
+```
+
+**Response 200:**
+```json
+{
+  "message": "Document processed successfully",
+  "chatbot_id": "550e8400-e29b-41d4-a716-446655440000",
+  "document_name": "company-policy.pdf",
+  "chunks_processed": 12
+}
+```
+
+#### POST /search
+Run a RAG search against a chatbot's knowledge base.
+
+**Request:**
+```json
+{
+  "chatbot_id": "550e8400-e29b-41d4-a716-446655440000",
+  "query": "What is the leave policy?",
+  "top_k": 5
+}
+```
+
+**Response 200:**
+```json
+{
+  "chatbot_id": "550e8400-e29b-41d4-a716-446655440000",
+  "query": "What is the leave policy?",
+  "answer": "According to the documents, employees are entitled to...",
+  "sources": [
+    { "document_name": "leave-policy.pdf", "chunk_id": 4, "score": 0.91 },
+    { "document_name": "employee-handbook.pdf", "chunk_id": 2, "score": 0.87 }
+  ]
+}
+```
+
+#### GET /health
+```json
+{ "status": "healthy" }
+```
+
+---
+
